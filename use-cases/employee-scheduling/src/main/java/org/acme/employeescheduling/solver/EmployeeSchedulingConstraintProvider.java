@@ -143,8 +143,7 @@ public class EmployeeSchedulingConstraintProvider implements ConstraintProvider 
                         no24HourEDCoverShiftAfterNightShiftBlock(constraintFactory),  
                         noShiftAfter24HourSundayShift(constraintFactory),  
                         penalizeExcessFridayShiftsForR4s(constraintFactory), 
-                        penalize24HourShiftsAroundUnavailabilityExcludingNightShifts(constraintFactory), 
-                        // penalizeBlockScheduleAfter24HourSundayShift(constraintFactory),   
+                        penalize24HourShiftsAroundUnavailability(constraintFactory),  
                         
                         // MIN/MAX RULES
                         minimumWeekendShiftsForResidents(constraintFactory), 
@@ -154,14 +153,12 @@ public class EmployeeSchedulingConstraintProvider implements ConstraintProvider 
                         minimumNFShiftsForResidents(constraintFactory), 
                         maximumNFShiftsForResidents(constraintFactory), 
 
-
                         // PEDIATRIC AWAY ROTATION RULES
                         maximumPedsShiftsForResidents(constraintFactory), 
                         pediatricShiftsDuringHolidays(constraintFactory), 
                         noOverlappingPediatricShiftsBetweenDifferentResidents(constraintFactory), 
+                        noPediatricsForR3InJune(constraintFactory), 
                         noPediatricsForR4InJune(constraintFactory), 
-                        noOverlappingPediatricShiftsForR4aRC(constraintFactory), 
-                        // onlyTwoResidentsForOverlappingPediatricShifts(constraintFactory), 
 
                         // BALANCE RULES
                         fridayEDCoverShiftsBalancing(constraintFactory),      
@@ -170,11 +167,14 @@ public class EmployeeSchedulingConstraintProvider implements ConstraintProvider 
                         nightShiftsBalancing(constraintFactory),
                         weekenddayShiftsBalancing(constraintFactory),
                         rewardConsecutiveNightBlocks(constraintFactory),
-                        // dayShiftsBalancing(constraintFactory),
 
                         // Block constraints to make things work
                         ensureMinimumOneShiftPerRequiredType(constraintFactory),
                         ensureMinimumWeekdayAndWeekendEdCoverShifts(constraintFactory),
+
+                        // FUTURE SCHEDULING RULES
+                        // penalizeBlockScheduleAfter24HourSundayShift(constraintFactory),  
+                        // dayShiftsBalancing(constraintFactory),
 
                         // General scheduling ACGME rules                         
                         // maximumWorkingHoursInFourWeekPeriod(constraintFactory),     
@@ -182,26 +182,6 @@ public class EmployeeSchedulingConstraintProvider implements ConstraintProvider 
                                                        
                 };
         }
-/*
-        Constraint rewardConsecutiveNightBlocks(ConstraintFactory constraintFactory) {
-            return constraintFactory.forEachUniquePair(Shift.class,
-                    // Ensure we're only considering night shift blocks
-                    Joiners.equal(Shift::getEmployee),  // Same employee
-                    Joiners.filtering((shift1, shift2) -> isNightShiftBlock(shift1) && isNightShiftBlock(shift2)))
-                    .filter((shift1, shift2) -> {
-                        // Determine the chronological order of the shifts
-                        Shift earlierShift = shift1.getStart().isBefore(shift2.getStart()) ? shift1 : shift2;
-                        Shift laterShift = shift1.equals(earlierShift) ? shift2 : shift1;
-                        // Calculate the expected start time of the later shift based on the end time of the earlier shift
-                        LocalDateTime expectedStartOfLaterShift = earlierShift.getEnd().plusHours(60);  // 2.5 days later
-                        // Check if the later shift starts as expected
-                        return laterShift.getStart().isEqual(expectedStartOfLaterShift);
-                    })
-                    // Reward this pattern to encourage scheduling consecutive night blocks with the appropriate weekend break in between
-                    .reward(HardMediumSoftScore.ONE_SOFT)
-                    .asConstraint("Reward consecutive night blocks with two days off in between");
-        }
-*/
 
         Constraint rewardConsecutiveNightBlocks(ConstraintFactory constraintFactory) {
             return constraintFactory.forEach(Shift.class)
@@ -274,7 +254,7 @@ public class EmployeeSchedulingConstraintProvider implements ConstraintProvider 
                     .filter(shift -> shift.getLocation().equals("Peds"))
                     // Ensure the shift is in June
                     .filter(shift -> shift.getStart().getMonth() == Month.JUNE)
-                    // Ensure the employee is an R4 resident
+                    // Ensure the employee is an R3 resident
                     .filter(shift -> shift.getEmployee() != null && "R3".equals(shift.getEmployee().getEmployeeType()))
                     .penalize(HardMediumSoftScore.ONE_HARD, 
                               (shift) -> 10)
@@ -396,36 +376,7 @@ public class EmployeeSchedulingConstraintProvider implements ConstraintProvider 
                     .filter((shift1, shift2) -> !shift1.getEmployee().equals(shift2.getEmployee()))
                     .penalize(HardMediumSoftScore.ONE_MEDIUM.ofMedium(1)) // Apply a medium penalty of 1
                     .asConstraint("No overlapping pediatric shifts between different residents");
-        }
-
-        Constraint noOverlappingPediatricShiftsForR4aRC(ConstraintFactory constraintFactory) {
-            return constraintFactory.forEachUniquePair(Shift.class,
-                            // This joiner ensures we're looking at shifts with overlapping times
-                            Joiners.overlapping(Shift::getStart, Shift::getEnd))
-                    // Filter only pediatric shifts
-                    .filter((shift1, shift2) -> shift1.getLocation().equals("Peds") && shift2.getLocation().equals("Peds"))
-                    // Ensure the shifts belong to different residents
-                    .filter((shift1, shift2) -> shift1.getEmployee().getName().equals("R4a RC") ||
-                                        shift2.getEmployee().getName().equals("R4a RC"))
-                    .penalize(HardMediumSoftScore.ONE_HARD.ofHard(1)) // Apply a medium penalty of 1
-                    .asConstraint("No overlapping pediatric shifts of RC");
-        }
-
-
-        Constraint onlyTwoResidentsForOverlappingPediatricShifts(ConstraintFactory constraintFactory) {
-            return constraintFactory.forEach(Shift.class)
-                    // Filter for pediatric shifts
-                    .filter(shift -> shift.getLocation().equals("Peds"))
-                    // Create a composite group key consisting of the start and end times to identify overlapping shifts
-                    .groupBy(shift -> new AbstractMap.SimpleEntry<>(shift.getStart(), shift.getEnd()), 
-                             countDistinct(Shift::getEmployee))
-                    // Apply a filter to identify groups where more than two distinct employees have overlapping shifts
-                    .filter((timeFrame, distinctEmployeeCount) -> distinctEmployeeCount > 2)
-                    // Penalize each group of overlapping shifts that violates the constraint
-                    .penalize(HardMediumSoftScore.ONE_HARD, 
-                              (timeFrame, distinctEmployeeCount) -> (distinctEmployeeCount - 2) * 10)
-                    .asConstraint("Only two residents can overlap for pediatric shifts at a time");
-        }        
+        }  
 
         Constraint preventEDCoverBeforeSaturdayShift(ConstraintFactory constraintFactory) {
             return constraintFactory.forEachUniquePair(Shift.class,
@@ -535,7 +486,7 @@ public class EmployeeSchedulingConstraintProvider implements ConstraintProvider 
             return overlapDays * 100;
         }        
 
-        Constraint penalize24HourShiftsAroundUnavailabilityExcludingNightShifts(ConstraintFactory constraintFactory) {
+        Constraint penalize24HourShiftsAroundUnavailability(ConstraintFactory constraintFactory) {
             return constraintFactory.forEach(Shift.class)
                 // Join shifts with unavailability to find overlaps
                 .join(Availability.class, Joiners.equal(Shift::getEmployee, Availability::getEmployee))
@@ -547,14 +498,17 @@ public class EmployeeSchedulingConstraintProvider implements ConstraintProvider 
                 .filter((shift, availability) -> {
                     LocalDate shiftDate = shift.getStart().toLocalDate();
                     LocalDate availabilityDate = availability.getDate();
-                    // Check if the shift is within 2 days before or after the unavailability date
-                    boolean isDayBeforeOrAfter = shiftDate.plusDays(1).equals(availabilityDate) ||
+                    // Check if the shift is within 1 or 2 days before or after the unavailability date
+                    boolean isDayBeforeOrAfter48 = shiftDate.plusDays(2).equals(availabilityDate) ||
+                                                  shiftDate.minusDays(2).equals(availabilityDate) ||
+                                                  shiftDate.equals(availabilityDate);
+                    boolean isDayBeforeOrAfter24 = shiftDate.plusDays(1).equals(availabilityDate) ||
                                                   shiftDate.minusDays(1).equals(availabilityDate) ||
                                                   shiftDate.equals(availabilityDate);
-                    return isDayBeforeOrAfter;
+                    return isDayBeforeOrAfter48 || isDayBeforeOrAfter24;
                 })
                 .penalize(HardMediumSoftScore.ONE_HARD, (shift, availability) -> 1)
-                .asConstraint("Penalize any 24-hour shifts 48 hours before or after unavailability for the same employee, excluding night shifts");
+                .asConstraint("Penalize any 24-hour shifts 48 hours before or after unavailability for the same employee");
         }
 
         Constraint noShiftAfter24HourSundayShift(ConstraintFactory constraintFactory) {
@@ -1061,33 +1015,7 @@ public class EmployeeSchedulingConstraintProvider implements ConstraintProvider 
             }
             return penalty;
         }
-/*
-        Constraint fridayEDCoverShiftsBalancing(ConstraintFactory constraintFactory) {
-            return constraintFactory.forEach(Shift.class)
-            .filter(shift -> isEDCover(shift) && shift.getStart().getDayOfWeek() == DayOfWeek.FRIDAY)
-            .groupBy(Shift::getEmployee, count())
-            .penalize(HardMediumSoftScore.ONE_SOFT,
-                      (employee, shiftCount) -> calculateEDCoverShiftBalancePenalty(employee, shiftCount, constraintFactory))
-            .asConstraint("FridayEDCoverShiftsBalancing");
-        }
 
-        private int calculateEDCoverShiftBalancePenalty(Employee employee, long shiftCount, ConstraintFactory constraintFactory) {
-            // Fetch all shifts to get a global view for balance calculation
-            List<Shift> allFridayEDCoverShifts = constraintFactory.getConstraintStream().ofType(Shift.class)
-                    .filter(shift -> isEDCover(shift) && shift.getStart().getDayOfWeek() == DayOfWeek.FRIDAY)
-                    .toList();
-
-            // Count shifts per employee
-            Map<Employee, Long> shiftCounts = allFridayEDCoverShifts.stream()
-                    .collect(Collectors.groupingBy(Shift::getEmployee, Collectors.counting()));
-
-            long averageShifts = shiftCounts.values().stream().mapToLong(Long::longValue).sum() / shiftCounts.size();
-            long penalty = Math.abs(shiftCount - averageShifts);
-
-            // This penalty encourages even distribution of Friday ED cover shifts among all employees
-            return (int) penalty;
-        }
-*/
         Constraint penalizeUnassignedShifts(ConstraintFactory constraintFactory) {
             return constraintFactory.forEachIncludingNullVars(Shift.class)
                     .filter(shift -> shift.getEmployee() == null && !shift.isOptional())
@@ -1119,14 +1047,6 @@ public class EmployeeSchedulingConstraintProvider implements ConstraintProvider 
             return (dayOfWeek != DayOfWeek.SATURDAY && dayOfWeek != DayOfWeek.SUNDAY) && "ED cover".equals(shift.getLocation());
         }
 
-/*
-        Constraint penalizeUnassignedShifts(ConstraintFactory constraintFactory) {
-            return constraintFactory.forEachIncludingNullVars(Shift.class)
-                    .filter(shift -> shift.getEmployee() == null && !shift.isOptional())
-                    .penalize(HardMediumSoftScore.ONE_HARD, (shift) -> 1) 
-                    .asConstraint("Unassigned mandatory shifts");
-        }
-*/
 
         private boolean isWeekend(Shift shift) {
                 DayOfWeek day = shift.getStart().getDayOfWeek();
