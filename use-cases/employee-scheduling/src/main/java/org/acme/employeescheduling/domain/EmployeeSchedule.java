@@ -1,42 +1,47 @@
 package org.acme.employeescheduling.domain;
 
 import java.util.List;
+import java.util.Map; 
+
+import org.acme.employeescheduling.domain.ShiftCountDto; 
 
 import ai.timefold.solver.core.api.domain.solution.PlanningEntityCollectionProperty;
 import ai.timefold.solver.core.api.domain.solution.PlanningScore;
 import ai.timefold.solver.core.api.domain.solution.PlanningSolution;
 import ai.timefold.solver.core.api.domain.solution.ProblemFactCollectionProperty;
 import ai.timefold.solver.core.api.domain.valuerange.ValueRangeProvider;
-import ai.timefold.solver.core.api.score.buildin.hardsoft.HardSoftScore;
+import ai.timefold.solver.core.api.score.buildin.hardmediumsoft.HardMediumSoftScore;
 import ai.timefold.solver.core.api.solver.SolverStatus;
 
 @PlanningSolution
 public class EmployeeSchedule {
     @ProblemFactCollectionProperty
-    List<Availability> availabilities;
+    List<Availability> availabilityList;
 
     @ProblemFactCollectionProperty
     @ValueRangeProvider
-    List<Employee> employees;
+    List<Employee> employeeList;
 
     @PlanningEntityCollectionProperty
-    List<Shift> shifts;
+    List<Shift> shiftList;
 
     @PlanningScore
-    HardSoftScore score;
+    HardMediumSoftScore score;
 
     ScheduleState scheduleState;
 
     SolverStatus solverStatus;
 
+    private Map<String, ShiftCountDto> shiftCounts; // New field to store shift counts
+
     // No-arg constructor required for Timefold
     public EmployeeSchedule() {}
 
-    public EmployeeSchedule(ScheduleState scheduleState, List<Availability> availabilities, List<Employee> employees, List<Shift> shifts) {
+    public EmployeeSchedule(ScheduleState scheduleState, List<Availability> availabilityList, List<Employee> employeeList, List<Shift> shiftList) {
         this.scheduleState = scheduleState;
-        this.availabilities = availabilities;
-        this.employees = employees;
-        this.shifts = shifts;
+        this.availabilityList = availabilityList;
+        this.employeeList = employeeList;
+        this.shiftList = shiftList;
     }
 
     public ScheduleState getScheduleState() {
@@ -47,35 +52,35 @@ public class EmployeeSchedule {
         this.scheduleState = scheduleState;
     }
 
-    public List<Availability> getAvailabilities() {
-        return availabilities;
+    public List<Availability> getAvailabilityList() {
+        return availabilityList;
     }
 
-    public void setAvailabilities(List<Availability> availabilities) {
-        this.availabilities = availabilities;
+    public void setAvailabilityList(List<Availability> availabilityList) {
+        this.availabilityList = availabilityList;
     }
 
-    public List<Employee> getEmployees() {
-        return employees;
+    public List<Employee> getEmployeeList() {
+        return employeeList;
     }
 
-    public void setEmployees(List<Employee> employees) {
-        this.employees = employees;
+    public void setEmployeeList(List<Employee> employeeList) {
+        this.employeeList = employeeList;
     }
 
-    public List<Shift> getShifts() {
-        return shifts;
+    public List<Shift> getShiftList() {
+        return shiftList;
     }
 
-    public void setShifts(List<Shift> shifts) {
-        this.shifts = shifts;
+    public void setShiftList(List<Shift> shiftList) {
+        this.shiftList = shiftList;
     }
 
-    public HardSoftScore getScore() {
+    public HardMediumSoftScore getScore() {
         return score;
     }
 
-    public void setScore(HardSoftScore score) {
+    public void setScore(HardMediumSoftScore score) {
         this.score = score;
     }
 
@@ -86,4 +91,15 @@ public class EmployeeSchedule {
     public void setSolverStatus(SolverStatus solverStatus) {
         this.solverStatus = solverStatus;
     }
+
+    // New setter for the shiftCounts field
+    public void setShiftCounts(Map<String, ShiftCountDto> shiftCounts) {
+        this.shiftCounts = shiftCounts;
+    }
+
+    // New getter for the shiftCounts field (if needed)
+    public Map<String, ShiftCountDto> getShiftCounts() {
+        return this.shiftCounts;
+    }
+
 }

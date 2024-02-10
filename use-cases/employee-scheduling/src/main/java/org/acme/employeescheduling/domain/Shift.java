@@ -1,6 +1,7 @@
 package org.acme.employeescheduling.domain;
 
 import java.time.LocalDateTime;
+import java.time.Duration;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -27,28 +28,34 @@ public class Shift {
     String location;
     String requiredSkill;
 
-    @PlanningVariable
+    @PlanningVariable(nullable=true)
     @ManyToOne
     Employee employee;
+
+    private boolean isOptional;
 
     public Shift() {
     }
 
+    // Modified constructors
+    
     public Shift(LocalDateTime start, LocalDateTime end, String location, String requiredSkill) {
-        this(start, end, location, requiredSkill, null);
+        this(start, end, location, requiredSkill, null, false); // Calling the full constructor
     }
-
+    
     public Shift(LocalDateTime start, LocalDateTime end, String location, String requiredSkill, Employee employee) {
-        this(null, start, end, location, requiredSkill, employee);
+        this(start, end, location, requiredSkill, employee, false); // Calling the full constructor
     }
 
-    public Shift(Long id, LocalDateTime start, LocalDateTime end, String location, String requiredSkill, Employee employee) {
-        this.id = id;
+    // This is the full constructor with all parameters including isOptional
+    public Shift(LocalDateTime start, LocalDateTime end, String location, String requiredSkill, Employee employee, boolean isOptional) {
+        this.id = null; // id is not passed, so set to null
         this.start = start;
         this.end = end;
         this.location = location;
         this.requiredSkill = requiredSkill;
         this.employee = employee;
+        this.isOptional = isOptional;
     }
 
     public Long getId() {
@@ -75,6 +82,11 @@ public class Shift {
         this.end = end;
     }
 
+    public int getShiftDurationInMinutes() {
+        long minutes = Duration.between(this.start, this.end).toMinutes();
+        return (int) minutes; // Safe cast if the value is always within int range
+    }
+
     public String getLocation() {
         return location;
     }
@@ -97,6 +109,14 @@ public class Shift {
 
     public void setEmployee(Employee employee) {
         this.employee = employee;
+    }
+
+    public boolean isOptional() {
+        return isOptional;
+    }
+
+    public void setOptional(boolean isOptional) {
+        this.isOptional = isOptional;
     }
 
     @Override
