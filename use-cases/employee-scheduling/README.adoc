@@ -1,4 +1,4 @@
-= Residency Scheduling - Modified from Employee Scheduling (Java, Quarkus, Maven)
+= Residency Scheduling - Modified from quickstart demo Employee Scheduling (Java, Quarkus, Maven)
 
 Schedule shifts to employees, accounting for employee availability and shift skill requirements.
 
