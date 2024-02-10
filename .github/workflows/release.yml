@@ -1,0 +1,80 @@
+name: Release
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Community Edition version (e.g. 1.0.0)'
+        required: true
+      developmentBranch:
+        description: 'Development branch to cut the release from'
+        default: development
+        required: true
+      stableBranch:
+        description: 'Stable branch to merge the development branch into'
+        default: stable
+        required: true
+      releaseBranch:
+        description: 'Release branch to create (e.g. 1.0.x for version 1.0.0; once created, branch protection rules apply)'
+        default: dry_run
+        required: true
+jobs:
+  build:
+    env:
+      MAVEN_ARGS: "--no-transfer-progress --batch-mode"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout timefold-quickstarts
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Set up Maven
+        uses: stCarolas/setup-maven@v4.5
+        with:
+          maven-version: 3.9.3
+
+      # This step will fail if the Solver binaries aren't already on Maven Central.
+      - name: Create release branch and build release
+        run: |
+          git config user.name "Timefold Release Bot"
+          git config user.email "release@timefold.ai"
+          git checkout -B ${{ github.event.inputs.releaseBranch }}
+          export OLD_VERSION="$(find . -name pom.xml -exec grep '<version.ai.timefold.solver>' {} \;|tail -n 1|cut -d\> -f1 --complement|cut -d\< -f1)"
+          export NEW_VERSION="${{ github.event.inputs.version }}"
+          .github/scripts/change_versions.sh
+          mvn verify
+          git commit -am "build: switch to version $NEW_VERSION"
+          git tag -a "v${{ github.event.inputs.version }}" -m "Release version ${{ github.event.inputs.version }}"
+          git push --tags
+
+      # Merge the release branch into the stable branch.
+      # While merging, resolve conflicts by using everything from the release branch.
+      # (Stable branch becomes the same as the release branch.)
+      - name: Merge release branch into stable and prepare PR
+        run: |
+          git checkout ${{ github.event.inputs.stableBranch }}
+          git checkout -B ${{ github.event.inputs.releaseBranch }}-bump
+          git checkout ${{ github.event.inputs.releaseBranch }}
+          git merge -s ours --no-edit ${{ github.event.inputs.stableBranch }}
+          git checkout ${{ github.event.inputs.releaseBranch }}-bump
+          git merge --squash ${{ github.event.inputs.releaseBranch }}
+          git commit -m "build: release version ${{ github.event.inputs.version }}"
+          git push origin ${{ github.event.inputs.releaseBranch }}-bump
+          gh pr create --reviewer triceo --base ${{ github.event.inputs.stableBranch }} --head ${{ github.event.inputs.releaseBranch }}-bump --title "build: release version ${{ github.event.inputs.version }}" --body-file .github/workflows/release-pr-body.md
+        env:
+          GITHUB_TOKEN: ${{ secrets.JRELEASER_GITHUB_TOKEN }}
+
+      - name: Put back the 999-SNAPSHOT version on the release branch
+        run: |
+          git checkout ${{ github.event.inputs.releaseBranch }}
+          export OLD_VERSION="$(find . -name pom.xml -exec grep '<version.ai.timefold.solver>' {} \;|tail -n 1|cut -d\> -f1 --complement|cut -d\< -f1)"
+          export NEW_VERSION="999-SNAPSHOT"
+          .github/scripts/change_versions.sh
+          git commit -am "build: move back to version $NEW_VERSION"
+          git push origin ${{ github.event.inputs.releaseBranch }}

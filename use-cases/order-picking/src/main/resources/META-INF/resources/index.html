@@ -1,0 +1,100 @@
+<html lang="en">
+<head>
+    <meta content="text/html; charset=UTF-8" http-equiv="Content-Type">
+    <meta content="width=device-width, initial-scale=1" name="viewport">
+    <title>Order Picking - Timefold Quarkus</title>
+    <link rel="stylesheet" href="/webjars/bootstrap/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="/webjars/font-awesome/css/all.css"/>
+    <link rel="stylesheet" href="/webjars/timefold/css/timefold-webui.css" />
+    <link rel="stylesheet" href="/style.css"/>
+    <link rel="icon" href="/webjars/timefold/img/timefold-favicon.svg" type="image/svg+xml">
+</head>
+<body>
+<header id="timefold-auto-header"></header>
+<div class="container-fluid">
+    <div class="sticky-top d-flex justify-content-center align-items-center" aria-live="polite" aria-atomic="true">
+        <div id="notificationPanel" style="position: absolute; top: .5rem;"></div>
+    </div>
+    <h1>Order Picking</h1>
+    <p>Generate an optimal picking plan for completing a set of orders.</p>
+
+    <div class="mb-2">
+        <button id="refreshButton" type="button" class="btn btn-success">
+            <span class="fas fa-sync"></span> Refresh
+        </button>
+        <button id="solveButton" type="button" class="btn btn-success">
+            <span class="fas fa-play"></span> Solve
+        </button>
+        <button id="stopSolvingButton" type="button" class="btn btn-danger" style="display: none">
+            <span class="fas fa-stop"></span> Stop solving
+        </button>
+        <span id="score" class="score ms-2 align-middle fw-bold">Score: ?</span>
+
+        <div class="float-end">
+            <ul class="nav nav-pills" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="solutionTab" data-bs-toggle="tab" data-bs-target="#solutionTabDiv" type="button" role="tab" aria-controls="solutionPanel" aria-selected="true">Picking plan</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="mapTab" data-bs-toggle="tab" data-bs-target="#mapTabDiv" type="button" role="tab" aria-controls="mapPanel" aria-selected="false" onclick="window.setTimeout(() => refreshSolution(), 500);">Map</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="unassignedEntitiesTab" data-bs-toggle="tab" data-bs-target="#unassignedEntitiesTabDiv" type="button" role="tab" aria-controls="unassignedEntitiesPanel" aria-selected="false">Unassigned</button>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="tab-content">
+        <div class="tab-pane fade show active" id="solutionTabDiv" role="tabpanel" aria-labelledby="solutionTab">
+            <div class="container text-center" id="welcomeMessageContainer" style="display: none">
+                <div class="row" style="padding-top: 140px;">
+                    <div class="col-md-12">
+                        <h4><strong>It looks like the Order Picking quickstart has not been started...</strong></h4>
+                    </div>
+                </div>
+                <div class="row" style="padding-top: 10px;">
+                    <div class="col-md-12">
+                        <span>To see the initial data set before staring the Solver you can use the <a href="javascript:doClickOnUnassignedEntities()">Unassigned</a> entities tab.</span>
+                    </div>
+                </div>
+            </div>
+
+            <table class="table table-borderless table-striped" id="solutionTable">
+                <!-- Filled in by app.js -->
+            </table>
+        </div>
+
+        <div class="tab-pane fade" id="mapTabDiv" role="tabpanel" aria-labelledby="mapTab">
+            <div id="mapContainer" style="padding-top: 10px;">
+                <div id="mapActionsContainer">
+                    <!-- Filled in by app.js -->
+                </div>
+                <div id="mapCanvasContainer" style="width: 75%; height: 75%; padding-top: 20px; padding-left: 15px;">
+                    <!-- Canvas drawing by app.js -->
+                    <canvas id="warehouseCanvas" style="position: absolute"></canvas>
+                </div>
+                <div>
+                    *Shelving dimension is of 2 meters width x 10 meters height.
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="unassignedEntitiesTabDiv" role="tabpanel" aria-labelledby="unassignedEntitiesTab">
+            <div id="unassignedEntitiesContainer">
+                <!-- Filled by the app.js -->
+            </div>
+        </div>
+    </div>
+</div>
+<footer id="timefold-auto-footer"></footer>
+
+<script src="/webjars/jquery/jquery.min.js"></script>
+<script src="/webjars/bootstrap/js/bootstrap.min.js"></script>
+<script src="/webjars/js-joda/dist/js-joda.min.js"></script>
+<script src="/webjars/timefold/js/timefold-webui.js"></script>
+<script src="/warehouse-api.js"></script>
+<script src="/app.js"></script>
+
+</body>
+</html>

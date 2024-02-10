@@ -1,0 +1,76 @@
+<html lang="en">
+<head>
+    <meta content="text/html; charset=UTF-8" http-equiv="Content-Type">
+    <meta content="width=device-width, initial-scale=1" name="viewport">
+    <title>Maintenance scheduling - Timefold Quarkus</title>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vis-timeline@7.7.2/styles/vis-timeline-graph2d.min.css"
+          integrity="sha256-svzNasPg1yR5gvEaRei2jg+n4Pc3sVyMUWeS6xRAh6U=" crossorigin="anonymous">
+
+    <link rel="stylesheet" href="/webjars/bootstrap/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="/webjars/font-awesome/css/all.css"/>
+    <link rel="stylesheet" href="/webjars/timefold/css/timefold-webui.css" />
+    <style>
+        .vis-time-axis .vis-grid.vis-saturday,
+        .vis-time-axis .vis-grid.vis-sunday {
+            background: #D3D7CFFF;
+        }
+    </style>
+    <link rel="icon" href="/webjars/timefold/img/timefold-favicon.svg" type="image/svg+xml">
+</head>
+
+<body>
+<header id="timefold-auto-header"></header>
+<div class="container-fluid">
+    <div class="sticky-top d-flex justify-content-center align-items-center" aria-live="polite" aria-atomic="true">
+        <div id="notificationPanel" style="position: absolute; top: .5rem;"></div>
+    </div>
+    <h1>Road maintenance schedule solver</h1>
+    <p>Generate the optimal schedule for your maintenance staff.</p>
+
+    <div class="mb-2">
+        <button id="refreshButton" type="button" class="btn btn-secondary">
+            <span class="fas fa-refresh"></span> Refresh
+        </button>
+        <button id="solveButton" type="button" class="btn btn-success">
+            <span class="fas fa-play"></span> Solve
+        </button>
+        <button id="stopSolvingButton" type="button" class="btn btn-danger">
+            <span class="fas fa-stop"></span> Stop solving
+        </button>
+        <span id="score" class="score ms-2 align-middle fw-bold">Score: ?</span>
+
+        <div class="float-end">
+            <ul class="nav nav-pills" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="byCrewTab" data-bs-toggle="tab" data-bs-target="#byCrewPanel" type="button" role="tab" aria-controls="byCrewPanel" aria-selected="true">By crew</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="byJobTab" data-bs-toggle="tab" data-bs-target="#byJobPanel" type="button" role="tab" aria-controls="byJobPanel" aria-selected="false">By job</button>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <div class="mb-4 tab-content">
+        <div class="tab-pane fade show active" id="byCrewPanel" role="tabpanel" aria-labelledby="byCrewTab">
+            <div id="employeeVisualization"></div>
+        </div>
+        <div class="tab-pane fade" id="byJobPanel" role="tabpanel" aria-labelledby="byJobTab">
+            <div id="managerVisualization"></div>
+        </div>
+    </div>
+
+    <h2>Unassigned jobs</h2>
+    <div id="unassignedJobs" class="row row-cols-3 g-3 mb-4"></div>
+</div>
+<footer id="timefold-auto-footer"></footer>
+
+<script src="/webjars/jquery/jquery.min.js"></script>
+<script src="/webjars/bootstrap/js/bootstrap.min.js"></script>
+<script src="/webjars/js-joda/dist/js-joda.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vis-timeline@7.7.2/standalone/umd/vis-timeline-graph2d.min.js"
+        integrity="sha256-Jy2+UO7rZ2Dgik50z3XrrNpnc5+2PAx9MhL2CicodME=" crossorigin="anonymous"></script>
+<script src="/webjars/timefold/js/timefold-webui.js"></script>
+<script src="/app.js"></script>
+</body>
+</html>
