@@ -8,14 +8,17 @@ image::Screenshot from 2024-02-10 17-05-41.png[]
 
 Here is data from a final solution for example:
 
-| Employee | Total Call (D) | Evenings (D) | Weekends (D) | Peds (W) | Night (W) | Saturday (D) | Sunday (D) | Friday (D) | Year |
-|----------|----------------|--------------|--------------|----------|-----------|--------------|------------|------------|------|
-| R2b      | 77             | 53           | 24           | 1        | 12        | 11           | 12         | 14         | R2   |
-| R2a      | 80             | 56           | 24           | 1        | 11        | 12           | 11         | 14         | R2   |
-| R3b      | 46             | 30           | 16           | 1        | 7         | 8            | 7          | 7          | R3   |
-| R3a      | 46             | 30           | 16           | 1        | 8         | 7            | 8          | 7          | R3   |
-| R4a      | 58             | 43           | 15           | 1        | 7         | 7            | 7          | 5          | R4   |
-| R4b      | 57             | 42           | 15           | 1        | 7         | 7            | 5          | 5          | R4   |
+[options="header"]
+|===
+|Employee |Total Call (D) |Evenings (D) |Weekends (D) |Peds (W) |Night (W) |Saturday (D) |Sunday (D) |Friday (D) |Year
+
+|R2b   |77 |53 |24 |1 |12 |11 |12 |14 |R2
+|R2a   |80 |56 |24 |1 |11 |12 |11 |14 |R2
+|R3b   |46 |30 |16 |1 |7 |8 |7 |7 |R3
+|R3a   |46 |30 |16 |1 |8 |7 |8 |7 |R3
+|R4a   |58 |43 |15 |1 |7 |7 |7 |5 |R4
+|R4b   |57 |42 |15 |1 |7 |7 |7 |5 |R4
+|===
 
 
 see https://github.com/TimefoldAI/timefold-quickstarts for more info
