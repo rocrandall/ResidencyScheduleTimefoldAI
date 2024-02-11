@@ -1,4 +1,4 @@
-= Residency Scheduling - Modified from quickstart demo Employee Scheduling (Java, Quarkus, Maven)
+= Residency Scheduling - Modified from Timefold AI quickstart demo Employee Scheduling (Java, Quarkus, Maven)
 
 Schedule shifts to residents across an entire academic year, accounting for availability, min max, balancing etc.. 
 
