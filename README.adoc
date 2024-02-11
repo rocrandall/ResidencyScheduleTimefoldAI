@@ -2,7 +2,7 @@
 
 Schedule shifts to residents across an entire academic year, accounting for availability, min max, balancing etc.. 
 
-This is a rough coding (but works well), yet I figured it may help someone else instead of having to start from scratch. 
+This is a rough coding with alot of inefficiencies etc (but works well), yet I figured it may help someone else instead of having to start from scratch. 
 
 image::Screenshot from 2024-02-10 17-05-41.png[]
 
